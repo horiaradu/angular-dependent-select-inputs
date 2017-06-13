@@ -1,0 +1,22 @@
+<h1>Data Driven</h1>
+
+<form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="first">First</label>
+    <select id="first" formControlName="first" class="form-control" (change)="onChangeFirst($event.target.value)">
+      <option *ngFor="let opt of firstOpts" [value]="opt.id"
+              [attr.selected]="myForm.controls['first'].value == opt.id || null">
+        {{opt.name}}
+      </option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="second">Second</label>
+    <select id="second" formControlName="second" class="form-control">
+      <option *ngFor="let opt of secondOpts" [value]="opt.id"
+              [attr.selected]="myForm.controls['second'].value == opt.id || null">
+        {{opt.name}}
+      </option>
+    </select>
+  </div>
+</form>
