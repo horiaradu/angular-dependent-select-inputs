@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { DataService } from '../data.service';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/forkJoin';
 
 @Component({
   selector: 'app-the-form',
@@ -14,43 +17,34 @@ export class TheFormComponent implements OnInit {
   firstOpts: any;
   secondOpts: any;
 
-  constructor(private formBuilder: FormBuilder) {
-    this.availableFirstOpts = [
-      { name: 'a', id: 1 },
-      { name: 'b', id: 2 },
-    ];
-
-    this.availableSecondOpts = {
-      1: [
-        { name: 'aa', id: 11 },
-        { name: 'bb', id: 22 },
-      ],
-      2: [
-        { name: 'cc', id: 11 },
-        { name: 'dd', id: 33 },
-      ],
-    };
-
-    this.object = {
-      first: {
-        name: 'a',
-        id: 1,
-      },
-      second: {
-        name: 'bb',
-        id: 22,
-      }
-    };
+  constructor(private formBuilder: FormBuilder, private dataService: DataService) {
   }
 
   ngOnInit() {
-    this.myForm = this.formBuilder.group({
-      first: [this.object.first.id],
-      second: [this.object.second.id],
-    });
+    Observable
+      .forkJoin([
+        this.dataService.getObject(),
+        this.dataService.getSelectOptions()
+      ])
+      .subscribe(([object, availableOpts]) => {
+        this.object = object;
 
-    this.firstOpts = this.availableFirstOpts;
-    this.secondOpts = this.availableSecondOpts[this.object.first.id];
+        // build options
+        this.availableFirstOpts = availableOpts.map(f => ({ id: f.id, name: f.name }));
+        this.availableSecondOpts = availableOpts.reduce((acc, o) => {
+          acc[o.id] = o.secondOpts;
+          return acc;
+        }, {});
+
+        // init form
+        this.myForm = this.formBuilder.group({
+          first: [this.object.first.id],
+          second: [this.object.second.id],
+        });
+
+        this.firstOpts = this.availableFirstOpts;
+        this.secondOpts = this.availableSecondOpts[this.object.first.id];
+      });
   }
 
   onSubmit() {
